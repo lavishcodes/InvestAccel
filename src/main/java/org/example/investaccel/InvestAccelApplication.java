@@ -1,0 +1,13 @@
+package org.example.investaccel;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class InvestAccelApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(InvestAccelApplication.class, args);
+    }
+
+}

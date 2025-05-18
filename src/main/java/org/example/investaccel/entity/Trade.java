@@ -16,6 +16,7 @@ public class Trade {
     private String symbol;
     private BigDecimal price;
     private int quantity;
+    private String type;
     private long timestamp;
 
     public Trade() { }
@@ -24,6 +25,7 @@ public class Trade {
                  Long sellOrderId,
                  String symbol,
                  BigDecimal price,
+                 String type,
                  int quantity,
                  long timestamp) {
         this.buyOrderId  = buyOrderId;
@@ -31,15 +33,10 @@ public class Trade {
         this.symbol      = symbol;
         this.price       = price;
         this.quantity    = quantity;
+        this.type        = type;
         this.timestamp   = timestamp;
     }
 
-    // If you prefer a simpler constructor when matching:
-    public Trade(String symbol, BigDecimal price, int quantity) {
-        this(null, null, symbol, price, quantity, System.currentTimeMillis());
-    }
-
-    // --- Getters & Setters ---
     public Long getId()                      { return id; }
     public Long getBuyOrderId()              { return buyOrderId; }
     public void setBuyOrderId(Long buyOrderId){ this.buyOrderId = buyOrderId; }
@@ -51,6 +48,8 @@ public class Trade {
     public void setPrice(BigDecimal price)   { this.price = price; }
     public int getQuantity()                 { return quantity; }
     public void setQuantity(int quantity)    { this.quantity = quantity; }
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
     public long getTimestamp()               { return timestamp; }
     public void setTimestamp(long timestamp){ this.timestamp = timestamp; }
 }

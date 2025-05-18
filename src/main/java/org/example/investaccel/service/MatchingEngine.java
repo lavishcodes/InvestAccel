@@ -3,50 +3,53 @@ package org.example.investaccel.service;
 import org.example.investaccel.entity.Order;
 import org.example.investaccel.entity.Trade;
 import org.example.investaccel.entity.Side;
-import  org.example.investaccel.entity.Status;
-import org.example.investaccel.service.OrderService;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
 
-@Component
+@Service
 public class MatchingEngine {
-    private final NavigableMap<BigDecimal, Queue<Order>> bids = new TreeMap<>(Comparator.reverseOrder());
-    private final NavigableMap<BigDecimal, Queue<Order>> asks = new TreeMap<>();
+
+    private final PriorityQueue<Order> buyBook = new PriorityQueue<>(Comparator.comparing(Order::getPrice).reversed());
+    private final PriorityQueue<Order> sellBook = new PriorityQueue<>(Comparator.comparing(Order::getPrice));
+    private final List<Trade> trades = new ArrayList<>();
 
     public List<Trade> match(Order incoming) {
-        List<Trade> trades = new ArrayList<>();
-        // Use Order.Side rather than Side
-        var book = incoming.getSide() == Side.BUY ? asks : bids;
+        PriorityQueue<Order> oppositeBook = incoming.getSide() == Side.BUY ? sellBook : buyBook;
+        while (!oppositeBook.isEmpty() && incoming.getQuantity() > 0) {
+            Order resting = oppositeBook.peek();
+            boolean priceMatch = incoming.getSide() == Side.BUY
+                    ? incoming.getPrice().compareTo(resting.getPrice()) >= 0
+                    : incoming.getPrice().compareTo(resting.getPrice()) <= 0;
+            if (!priceMatch) break;
 
-        while (incoming.getRemaining() > 0 && !book.isEmpty()) {
-            BigDecimal bestPrice = book.firstKey();
-            boolean priceMismatch = incoming.getSide() == Side.BUY
-                    ? bestPrice.compareTo(incoming.getPrice()) > 0
-                    : bestPrice.compareTo(incoming.getPrice()) < 0;
-            if (priceMismatch) break;
+            int matchQty = Math.min(incoming.getQuantity(), resting.getQuantity());
+            BigDecimal tradePrice = resting.getPrice();
 
-            Order resting = book.get(bestPrice).peek();
-            int matchQty = Math.min(incoming.getRemaining(), resting.getRemaining());
-
-            // Create trade record (matches your Trade constructor)
-            Trade trade = new Trade(incoming.getSymbol(), bestPrice, matchQty);
+            Trade trade = new Trade(
+                    incoming.getSide() == Side.BUY ? incoming.getId() : resting.getId(),
+                    incoming.getSide() == Side.SELL ? incoming.getId() : resting.getId(),
+                    incoming.getSymbol(),
+                    tradePrice,
+                    incoming.getSide().name(),
+                    matchQty,
+                    System.currentTimeMillis()
+            );
             trades.add(trade);
 
-            incoming.setRemaining(incoming.getRemaining() - matchQty);
-            resting.setRemaining(resting.getRemaining() - matchQty);
-            if (resting.getRemaining() == 0) {
-                book.get(bestPrice).poll();
+            incoming.setQuantity(incoming.getQuantity() - matchQty);
+            resting.setQuantity(resting.getQuantity() - matchQty);
+
+            if (resting.getQuantity() == 0) {
+                oppositeBook.poll();
             }
         }
 
-        // If any quantity remains, add incoming to the order book
-        if (incoming.getRemaining() > 0) {
-            var target = incoming.getSide() == Side.BUY ? bids : asks;
-            target.computeIfAbsent(incoming.getPrice(), p -> new LinkedList<>()).add(incoming);
+        if (incoming.getQuantity() > 0) {
+            if (incoming.getSide() == Side.BUY) buyBook.add(incoming);
+            else sellBook.add(incoming);
         }
-
         return trades;
     }
 }

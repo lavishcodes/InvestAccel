@@ -16,7 +16,7 @@ public class User {
     @Column(nullable = false)
     private String passwordHash;
 
-    // e.g. roles: “ROLE_USER”, “ROLE_ADMIN”
+
     private String role;
 
     public User() { }
@@ -27,12 +27,11 @@ public class User {
         this.role         = role;
     }
 
-    // --- Getters & Setters ---
     public Long getId()                   { return id; }
     public String getUsername()           { return username; }
     public void setUsername(String username){ this.username = username; }
     public String getPasswordHash()       { return passwordHash; }
-    public void setPasswordHash(String pw) { this.passwordHash = pw; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public String getRole()               { return role; }
     public void setRole(String role)      { this.role = role; }
 }

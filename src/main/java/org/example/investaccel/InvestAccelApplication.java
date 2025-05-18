@@ -2,12 +2,12 @@ package org.example.investaccel;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling      // for @Scheduled in MarketDataService
 public class InvestAccelApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(InvestAccelApplication.class, args);
     }
-
 }
